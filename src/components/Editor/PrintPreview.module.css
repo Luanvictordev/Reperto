@@ -1,0 +1,120 @@
+.previewArea {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding-top: 8px;
+  padding-bottom: 24px;
+}
+
+.sheetWrapper {
+  width: 794px;
+  max-width: 100%;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.sheet {
+  width: 794px;
+  height: 1123px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #ece8e1;
+  padding: 57px;
+  color: #000;
+  overflow: hidden;
+}
+
+.sheetTitle {
+  margin: 0 0 36px;
+  text-align: center;
+  font-weight: 700;
+  line-height: 1.15;
+  flex-shrink: 0;
+}
+
+.columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+}
+
+.column {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.block {
+  break-inside: avoid;
+  margin-bottom: 12px;
+}
+
+.blockLabel {
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+
+.songList {
+  display: grid;
+}
+
+.songRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.songRowInline {
+  justify-content: flex-start;
+}
+
+.songName {
+  min-width: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.songNameInline {
+  flex: 0 1 auto;
+}
+
+.songRight {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.songRightInline {
+  flex-shrink: 0;
+}
+
+.songDash {
+  color: #000;
+}
+
+.songChord {
+  font-weight: 700;
+}
+
+.printMount {
+  width: 210mm;
+  display: grid;
+  gap: 0;
+}
+
+@media (max-width: 900px) {
+  .previewArea {
+    align-items: flex-start;
+  }
+
+  .sheetWrapper {
+    min-width: 794px;
+  }
+}

@@ -1,0 +1,92 @@
+.row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto 68px 28px;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 8px;
+  border: 1px solid var(--border-color);
+  background: #fff;
+}
+
+.row[data-dragging='true'] {
+  opacity: 0.2;
+}
+
+.overlay {
+  width: min(400px, 92vw);
+  box-shadow: 0 12px 24px rgba(26, 25, 22, 0.14);
+}
+
+.handle {
+  border: none;
+  background: transparent;
+  color: #9a978f;
+  opacity: 0;
+  cursor: grab;
+  transition: opacity 120ms ease;
+}
+
+.row:hover .handle {
+  opacity: 1;
+}
+
+.nameWrap {
+  position: relative;
+  min-width: 0;
+}
+
+.nameInput,
+.chordInput {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: var(--text-primary);
+  padding: 0;
+}
+
+.nameInput::placeholder,
+.chordInput::placeholder {
+  color: #b2aea6;
+}
+
+.chordInput {
+  text-align: center;
+  border-bottom: 1px solid transparent;
+}
+
+.invalidChord {
+  border-bottom-color: #e67e22;
+}
+
+.separator {
+  color: var(--text-secondary);
+}
+
+.deleteButton {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.deleteButton:hover {
+  color: var(--text-primary);
+}
+
+.truncationHint {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  color: #b4aea4;
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.overlayName,
+.overlayChord {
+  min-height: 1lh;
+}

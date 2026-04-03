@@ -1,0 +1,56 @@
+.container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast {
+  min-width: 220px;
+  max-width: 320px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  color: var(--text-primary);
+  padding: 12px 14px;
+  box-shadow: 0 8px 24px rgba(26, 25, 22, 0.12);
+  animation: fade-in 120ms ease, fade-out 240ms ease 2.7s forwards;
+}
+
+.success {
+  border-left: 3px solid var(--text-primary);
+}
+
+.error {
+  border-left: 3px solid #d35400;
+}
+
+.info {
+  border-left: 3px solid #6b6964;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}

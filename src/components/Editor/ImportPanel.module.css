@@ -1,0 +1,82 @@
+.wrapper {
+  padding: 16px 16px 0;
+}
+
+.buttonWrap {
+  padding-bottom: 12px;
+}
+
+.panel {
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.subtitle,
+.hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  border: 1px solid var(--border-color);
+  background: #fbfaf7;
+  padding: 12px 14px;
+  font: inherit;
+  line-height: 1.55;
+}
+
+.footer {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.parseButton,
+.reimportButton {
+  min-height: 40px;
+  padding: 0 14px;
+  font-weight: 600;
+}
+
+.parseButton {
+  border: 1px solid var(--text-primary);
+  background: var(--text-primary);
+  color: #fff;
+}
+
+.parseButton:hover {
+  background: #2b2925;
+}
+
+.reimportButton {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.reimportButton:hover {
+  background: rgba(26, 25, 22, 0.05);
+}

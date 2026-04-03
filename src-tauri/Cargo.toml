@@ -1,0 +1,23 @@
+[package]
+name = "setlistmaker"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "setlistmaker_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.0.3", features = [] }
+
+[dependencies]
+chrono = { version = "0.4.38", features = ["clock"] }
+opener = "0.8.4"
+printpdf = "0.7.0"
+rusqlite = { version = "0.31.0", features = ["bundled"] }
+serde = { version = "1.0.214", features = ["derive"] }
+serde_json = "1.0.132"
+tauri = { version = "2.1.1", features = [] }
+tauri-plugin-dialog = "2.0.4"
+tauri-plugin-shell = "2.0.4"
+tauri-plugin-sql = { version = "2.0.4", features = ["sqlite"] }

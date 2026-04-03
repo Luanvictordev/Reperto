@@ -1,0 +1,59 @@
+.section {
+  border-top: 1px solid var(--border-color);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--app-bg);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  user-select: none;
+}
+
+.header:hover {
+  background: #edecea;
+}
+
+.titleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chevron,
+.stateMark {
+  width: 12px;
+}
+
+.stateMark {
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.body {
+  overflow: hidden;
+  transition: max-height 250ms ease;
+}
+
+.bodyOpen {
+  max-height: 9999px;
+}
+
+.bodyClosed {
+  max-height: 0;
+}
+
+.bodyInner {
+  padding: 16px;
+}

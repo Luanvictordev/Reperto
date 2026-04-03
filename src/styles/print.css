@@ -1,0 +1,36 @@
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  body > *:not(#print-root) {
+    display: none !important;
+  }
+
+  #print-root {
+    display: block !important;
+  }
+
+  .toolbar,
+  .left-panel,
+  .typography-panel,
+  .sheet-shadow-wrapper {
+    display: none !important;
+  }
+
+  .a4-sheet {
+    width: 100% !important;
+    height: auto !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .song-chord {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

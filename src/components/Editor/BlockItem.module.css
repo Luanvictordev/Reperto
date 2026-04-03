@@ -1,0 +1,104 @@
+.block {
+  border: 1px solid var(--border-color);
+  background: #fbfaf7;
+  padding: 14px;
+}
+
+.block[data-dragging='true'] {
+  opacity: 0.3;
+}
+
+.overlay {
+  width: min(360px, 90vw);
+  box-shadow: 0 14px 30px rgba(26, 25, 22, 0.12);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.handle {
+  width: 26px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: #9a978f;
+  font-size: 15px;
+  opacity: 0;
+  cursor: grab;
+  transition: opacity 120ms ease;
+}
+
+.block:hover .handle {
+  opacity: 1;
+}
+
+.labelInput,
+.overlayLabel {
+  min-width: 56px;
+  flex: 1 1 64px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.badge {
+  min-width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.actionButton,
+.iconButton {
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
+  min-height: 32px;
+  padding: 0 10px;
+}
+
+.iconButton {
+  width: 32px;
+  padding: 0;
+}
+
+.actionButton:hover,
+.iconButton:hover {
+  background: rgba(26, 25, 22, 0.05);
+}
+
+.songs {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.emptyBlock {
+  min-height: 54px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
