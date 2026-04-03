@@ -4,7 +4,6 @@
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  padding-top: 8px;
   padding-bottom: 24px;
 }
 
@@ -33,6 +32,9 @@
   text-align: center;
   font-weight: 700;
   line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   flex-shrink: 0;
 }
 
@@ -44,7 +46,16 @@
 
 .column {
   min-width: 0;
+  min-height: 28px;
   overflow: hidden;
+}
+
+.column[data-over='true'] {
+  background: rgba(26, 25, 22, 0.035);
+}
+
+.emptyColumn {
+  min-height: 20px;
 }
 
 .block {
@@ -52,9 +63,48 @@
   margin-bottom: 12px;
 }
 
+.block[data-dragging='true'] {
+  opacity: 0.35;
+}
+
+.dragOverlayBlock {
+  width: 220px;
+  box-shadow: 0 14px 30px rgba(26, 25, 22, 0.12);
+  background: #fff;
+}
+
+.blockHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.dragHandle {
+  width: 24px;
+  min-width: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #9a978f;
+  font-size: 14px;
+  line-height: 1;
+  cursor: grab;
+  opacity: 0.35;
+  flex-shrink: 0;
+}
+
+.block:hover .dragHandle,
+.dragHandle:focus-visible {
+  opacity: 1;
+}
+
 .blockLabel {
   margin: 0 0 8px;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
 }
 
 .songList {
@@ -62,19 +112,21 @@
 }
 
 .songRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  column-gap: 12px;
 }
 
 .songRowInline {
+  display: flex;
   justify-content: flex-start;
+  gap: 12px;
 }
 
 .songName {
+  display: block;
   min-width: 0;
-  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -87,8 +139,10 @@
 .songRight {
   display: inline-flex;
   align-items: baseline;
+  justify-content: flex-end;
   gap: 6px;
-  flex-shrink: 0;
+  min-width: max-content;
+  white-space: nowrap;
 }
 
 .songRightInline {
@@ -100,7 +154,66 @@
 }
 
 .songChord {
+  display: block;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.editableText,
+.editInput {
+  box-sizing: border-box;
+  display: block;
+  max-width: 100%;
+  padding: 1px 2px;
+  border: none;
+  border-radius: 2px;
+  font: inherit;
+  color: inherit;
+  line-height: inherit;
+}
+
+.editableText {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px transparent;
+  cursor: text;
+  transition: box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.editableText:hover {
+  box-shadow: inset 0 0 0 1px rgba(26, 25, 22, 0.12);
+  background: rgba(26, 25, 22, 0.035);
+}
+
+.editInput {
+  background: rgba(255, 249, 235, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(26, 25, 22, 0.22);
+  outline: none;
+}
+
+.editInput:focus {
+  box-shadow: inset 0 0 0 1px rgba(26, 25, 22, 0.45);
+}
+
+.widthFull {
+  width: 100%;
+  min-width: 0;
+}
+
+.widthContent {
+  width: auto;
+  min-width: 3ch;
+}
+
+.alignLeft {
+  text-align: left;
+}
+
+.alignCenter {
+  text-align: center;
+}
+
+.alignRight {
+  text-align: right;
 }
 
 .printMount {

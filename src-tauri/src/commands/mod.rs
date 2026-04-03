@@ -27,10 +27,19 @@ pub struct SongPayload {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct BlockLayoutPayload {
+    pub page: u32,
+    pub column: u8,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BlockPayload {
     pub id: String,
     pub label: String,
     pub songs: Vec<SongPayload>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub layout: Option<BlockLayoutPayload>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

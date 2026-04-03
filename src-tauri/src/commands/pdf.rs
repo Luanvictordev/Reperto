@@ -61,6 +61,26 @@ fn px_to_mm(px: f64) -> f64 {
     px * 25.4 / 96.0
 }
 
+fn estimate_line_height_mm(song_size_px: f64, line_spacing: f64) -> f64 {
+    px_to_mm(song_size_px * line_spacing)
+}
+
+fn estimate_column_height_mm(title_size_px: f64) -> f64 {
+    let title_band = px_to_mm(title_size_px * 1.15) + px_to_mm(36.0);
+    PAGE_HEIGHT_MM - PAGE_MARGIN_MM * 2.0 - title_band
+}
+
+fn estimate_block_height_mm(
+    block: &super::BlockPayload,
+    block_size_px: f64,
+    song_size_px: f64,
+    line_spacing: f64,
+) -> f64 {
+    px_to_mm(block_size_px * 1.2)
+        + block.songs.len() as f64 * estimate_line_height_mm(song_size_px, line_spacing)
+        + px_to_mm(12.0)
+}
+
 fn truncate_name(name: &str, limit: u32) -> String {
     if limit == 0 || name.chars().count() <= limit as usize {
         return name.to_string();
@@ -129,25 +149,51 @@ fn draw_page_header(
     title_y - px_to_mm(36.0)
 }
 
-fn next_flow_position(
-    document: &PdfDocumentReference,
-    layer: &mut PdfLayerReference,
-    current_column: &mut usize,
-    title: &str,
-    title_font: &IndirectFontRef,
-    title_size_pt: f64,
-    columns: usize,
-) -> f64 {
-    *current_column += 1;
+fn build_pdf_pages<'a>(setlist: &'a SetlistPayload) -> Vec<Vec<Vec<&'a super::BlockPayload>>> {
+    let columns = setlist.settings.columns.clamp(1, 3) as usize;
+    let max_column_height = estimate_column_height_mm(setlist.settings.title_size);
+    let mut pages: Vec<(Vec<Vec<&super::BlockPayload>>, Vec<f64>)> = Vec::new();
 
-    if *current_column >= columns {
-        let (page_index, layer_index) =
-            document.add_page(Mm(PAGE_WIDTH_MM as f32), Mm(PAGE_HEIGHT_MM as f32), "Layer");
-        *layer = document.get_page(page_index).get_layer(layer_index);
-        *current_column = 0;
+    for block in &setlist.blocks {
+        let block_height = estimate_block_height_mm(
+            block,
+            setlist.settings.block_size,
+            setlist.settings.song_size,
+            setlist.settings.line_spacing,
+        );
+        let preferred_page = block.layout.as_ref().map(|layout| layout.page as usize).unwrap_or(0);
+        let preferred_column = block
+            .layout
+            .as_ref()
+            .map(|layout| layout.column as usize)
+            .unwrap_or(0)
+            .min(columns.saturating_sub(1));
+        let mut page_index = preferred_page;
+
+        loop {
+            while pages.len() <= page_index {
+                pages.push(((0..columns).map(|_| Vec::new()).collect(), vec![0.0; columns]));
+            }
+
+            let page = &mut pages[page_index];
+            let next_height = page.1[preferred_column] + block_height;
+            let can_place = next_height <= max_column_height || page.0[preferred_column].is_empty();
+
+            if can_place {
+                page.0[preferred_column].push(block);
+                page.1[preferred_column] = next_height;
+                break;
+            }
+
+            page_index += 1;
+        }
     }
 
-    draw_page_header(layer, title, title_font, title_size_pt)
+    if pages.is_empty() {
+        pages.push(((0..columns).map(|_| Vec::new()).collect(), vec![0.0; columns]));
+    }
+
+    pages.into_iter().map(|(page_columns, _)| page_columns).collect()
 }
 
 fn render_pdf_to_path(setlist: &SetlistPayload, output_path: &Path) -> Result<(), String> {
@@ -169,7 +215,7 @@ fn render_pdf_to_path(setlist: &SetlistPayload, output_path: &Path) -> Result<()
     let title_font_size_pt = px_to_pt(setlist.settings.title_size);
     let block_font_size_pt = px_to_pt(setlist.settings.block_size);
     let song_font_size_pt = px_to_pt(setlist.settings.song_size);
-    let line_height_mm = px_to_mm(setlist.settings.song_size * setlist.settings.line_spacing);
+    let line_height_mm = estimate_line_height_mm(setlist.settings.song_size, setlist.settings.line_spacing);
     let block_gap_mm = px_to_mm(12.0);
     let columns = setlist.settings.columns.clamp(1, 3) as usize;
     let usable_width =
@@ -177,118 +223,102 @@ fn render_pdf_to_path(setlist: &SetlistPayload, output_path: &Path) -> Result<()
     let column_width = usable_width / columns as f64;
     let chord_color = color_from_hex(&setlist.settings.chord_color);
     let chord_inline = setlist.settings.chord_inline;
+    let pages = build_pdf_pages(setlist);
 
     let mut layer = document.get_page(first_page).get_layer(first_layer);
-    let mut current_column = 0usize;
-    let mut current_y = draw_page_header(&layer, title, &bold_font, title_font_size_pt);
-
-    for block in &setlist.blocks {
-        let estimated_block_height =
-            px_to_mm(setlist.settings.block_size) + block.songs.len() as f64 * line_height_mm + block_gap_mm;
-
-        if current_y - estimated_block_height < PAGE_MARGIN_MM {
-            current_y = next_flow_position(
-                &document,
-                &mut layer,
-                &mut current_column,
-                title,
-                &bold_font,
-                title_font_size_pt,
-                columns,
-            );
+    for (page_index, page_columns) in pages.iter().enumerate() {
+        if page_index > 0 {
+            let (new_page, new_layer) =
+                document.add_page(Mm(PAGE_WIDTH_MM as f32), Mm(PAGE_HEIGHT_MM as f32), "Layer");
+            layer = document.get_page(new_page).get_layer(new_layer);
         }
 
-        let column_x = PAGE_MARGIN_MM + current_column as f64 * (column_width + COLUMN_GAP_MM);
-        draw_text(
-            &layer,
-            &block.label,
-            &bold_font,
-            block_font_size_pt,
-            column_x,
-            current_y,
-            (0.0, 0.0, 0.0),
-        );
-        current_y -= line_height_mm * 0.85;
+        let page_start_y = draw_page_header(&layer, title, &bold_font, title_font_size_pt);
 
-        for song in &block.songs {
-            if current_y - line_height_mm < PAGE_MARGIN_MM {
-                current_y = next_flow_position(
-                    &document,
-                    &mut layer,
-                    &mut current_column,
-                    title,
+        for (column_index, column) in page_columns.iter().enumerate() {
+            let column_x = PAGE_MARGIN_MM + column_index as f64 * (column_width + COLUMN_GAP_MM);
+            let mut current_y = page_start_y;
+
+            for block in column {
+                draw_text(
+                    &layer,
+                    &block.label,
                     &bold_font,
-                    title_font_size_pt,
-                    columns,
+                    block_font_size_pt,
+                    column_x,
+                    current_y,
+                    (0.0, 0.0, 0.0),
                 );
-            }
+                current_y -= line_height_mm * 0.85;
 
-            let current_column_x = PAGE_MARGIN_MM + current_column as f64 * (column_width + COLUMN_GAP_MM);
-            let truncated_name = truncate_name(&song.name, setlist.settings.truncate_at);
-            draw_text(
-                &layer,
-                &truncated_name,
-                &regular_font,
-                song_font_size_pt,
-                current_column_x,
-                current_y,
-                (0.0, 0.0, 0.0),
-            );
-
-            if let Some(chord) = song.chord.as_ref().filter(|value| !value.trim().is_empty()) {
-                if chord_inline {
-                    let name_width = estimate_text_width_mm(&truncated_name, song_font_size_pt);
-                    let dash_x = (current_column_x + name_width + 2.0).min(current_column_x + column_width - 8.0);
-                    let chord_x = (dash_x + 3.4).min(current_column_x + column_width - 6.0);
-
+                for song in &block.songs {
+                    let truncated_name = truncate_name(&song.name, setlist.settings.truncate_at);
                     draw_text(
                         &layer,
-                        "\u{2013}",
+                        &truncated_name,
                         &regular_font,
                         song_font_size_pt,
-                        dash_x,
+                        column_x,
                         current_y,
                         (0.0, 0.0, 0.0),
                     );
-                    draw_text(
-                        &layer,
-                        chord,
-                        &bold_font,
-                        song_font_size_pt,
-                        chord_x,
-                        current_y,
-                        chord_color,
-                    );
-                } else {
-                    let chord_width = estimate_text_width_mm(chord, song_font_size_pt);
-                    let chord_x = current_column_x + column_width - chord_width;
-                    draw_text(
-                        &layer,
-                        chord,
-                        &bold_font,
-                        song_font_size_pt,
-                        chord_x,
-                        current_y,
-                        chord_color,
-                    );
 
-                    let dash_x = (chord_x - 3.4).max(current_column_x);
-                    draw_text(
-                        &layer,
-                        "\u{2013}",
-                        &regular_font,
-                        song_font_size_pt,
-                        dash_x,
-                        current_y,
-                        (0.0, 0.0, 0.0),
-                    );
+                    if let Some(chord) = song.chord.as_ref().filter(|value| !value.trim().is_empty()) {
+                        if chord_inline {
+                            let name_width = estimate_text_width_mm(&truncated_name, song_font_size_pt);
+                            let dash_x = (column_x + name_width + 2.0).min(column_x + column_width - 8.0);
+                            let chord_x = (dash_x + 3.4).min(column_x + column_width - 6.0);
+
+                            draw_text(
+                                &layer,
+                                "\u{2013}",
+                                &regular_font,
+                                song_font_size_pt,
+                                dash_x,
+                                current_y,
+                                (0.0, 0.0, 0.0),
+                            );
+                            draw_text(
+                                &layer,
+                                chord,
+                                &bold_font,
+                                song_font_size_pt,
+                                chord_x,
+                                current_y,
+                                chord_color,
+                            );
+                        } else {
+                            let chord_width = estimate_text_width_mm(chord, song_font_size_pt);
+                            let chord_x = column_x + column_width - chord_width;
+                            draw_text(
+                                &layer,
+                                chord,
+                                &bold_font,
+                                song_font_size_pt,
+                                chord_x,
+                                current_y,
+                                chord_color,
+                            );
+
+                            let dash_x = (chord_x - 3.4).max(column_x);
+                            draw_text(
+                                &layer,
+                                "\u{2013}",
+                                &regular_font,
+                                song_font_size_pt,
+                                dash_x,
+                                current_y,
+                                (0.0, 0.0, 0.0),
+                            );
+                        }
+                    }
+
+                    current_y -= line_height_mm;
                 }
+
+                current_y -= block_gap_mm;
             }
-
-            current_y -= line_height_mm;
         }
-
-        current_y -= block_gap_mm;
     }
 
     let file = File::create(output_path).map_err(|error| {

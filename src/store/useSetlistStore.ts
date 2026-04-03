@@ -7,6 +7,7 @@ import {
   getSetlist,
   saveSetlist,
 } from '../lib/db';
+import { assignBalancedBlockLayout, hasBlockLayout, suggestPlacementForNewBlock } from '../lib/previewLayout';
 import { parseRawText } from '../lib/parser';
 import {
   DEFAULT_PRINT_SETTINGS,
@@ -14,6 +15,7 @@ import {
   normalizeChord,
   normalizePrintSettings,
   normalizeSetlist,
+  type BlockLayout,
   type Block,
   type PrintSettings,
   type Setlist,
@@ -196,6 +198,19 @@ function updateSetlist(setlist: Setlist, updater: (current: Setlist) => Setlist)
   };
 }
 
+function ensureSetlistLayout<T extends Setlist>(setlist: T): T {
+  const normalized = normalizeSetlist(setlist);
+
+  if (normalized.blocks.every(hasBlockLayout)) {
+    return normalized as T;
+  }
+
+  return {
+    ...normalized,
+    blocks: assignBalancedBlockLayout(normalized.blocks, normalized.settings),
+  } as T;
+}
+
 interface SetlistStoreState {
   library: SetlistSummary[];
   libraryLoading: boolean;
@@ -224,6 +239,7 @@ interface SetlistStoreState {
   updateSettings: (patch: Partial<PrintSettings>) => void;
   addBlock: () => void;
   updateBlockLabel: (blockId: string, label: string) => void;
+  setBlockPlacement: (blockId: string, layout: BlockLayout) => void;
   deleteBlock: (blockId: string) => void;
   toggleBlockCollapsed: (blockId: string) => void;
   addSong: (blockId: string) => void;
@@ -254,7 +270,7 @@ export const useSetlistStore = create<SetlistStoreState>((set, get) => ({
 
     try {
       const library = await getAllSetlists();
-      set({ library: library.map((setlist) => normalizeSetlist(setlist)), libraryLoading: false });
+      set({ library: library.map((setlist) => ensureSetlistLayout(setlist)), libraryLoading: false });
     } catch (error) {
       set({ libraryLoading: false });
       const message = error instanceof Error ? error.message : 'Não foi possível carregar os repertórios.';
@@ -266,7 +282,7 @@ export const useSetlistStore = create<SetlistStoreState>((set, get) => ({
     set({ editorLoading: true, saveState: 'idle' });
 
     try {
-      const setlist = normalizeSetlist(await getSetlist(id));
+      const setlist = ensureSetlistLayout(await getSetlist(id));
       set({
         currentSetlist: setlist,
         recentChordColors: pushRecentChordColor(get().recentChordColors, setlist.settings.chordColor),
@@ -307,7 +323,7 @@ export const useSetlistStore = create<SetlistStoreState>((set, get) => ({
     }
 
     const draft = {
-      ...normalizeSetlist(state.currentSetlist),
+      ...ensureSetlistLayout(state.currentSetlist),
       updatedAt: nowIso(),
     };
 
@@ -386,7 +402,7 @@ export const useSetlistStore = create<SetlistStoreState>((set, get) => ({
 
   parseImportTextToBlocks() {
     set((state) => {
-      const parsedBlocks = parseRawText(state.importText);
+      const parsedBlocks = assignBalancedBlockLayout(parseRawText(state.importText), state.currentSetlist.settings);
       return {
         currentSetlist: updateSetlist(state.currentSetlist, (current) => ({
           ...current,
@@ -401,12 +417,16 @@ export const useSetlistStore = create<SetlistStoreState>((set, get) => ({
   },
 
   replaceBlocks(blocks) {
+    const nextBlocks = blocks.every(hasBlockLayout)
+      ? blocks
+      : assignBalancedBlockLayout(blocks, get().currentSetlist.settings);
+
     set((state) => ({
       currentSetlist: updateSetlist(state.currentSetlist, (current) => ({
         ...current,
-        blocks,
+        blocks: nextBlocks,
       })),
-      collapsedBlockIds: state.collapsedBlockIds.filter((blockId) => blocks.some((block) => block.id === blockId)),
+      collapsedBlockIds: state.collapsedBlockIds.filter((blockId) => nextBlocks.some((block) => block.id === blockId)),
       dirtyRevision: state.dirtyRevision + 1,
       saveState: 'idle',
     }));
@@ -426,6 +446,10 @@ export const useSetlistStore = create<SetlistStoreState>((set, get) => ({
       return {
         currentSetlist: updateSetlist(state.currentSetlist, (current) => ({
           ...current,
+          blocks:
+            nextSettings.columns !== current.settings.columns
+              ? assignBalancedBlockLayout(current.blocks, nextSettings)
+              : current.blocks,
           settings: nextSettings,
         })),
         recentChordColors: patch.chordColor
@@ -441,14 +465,16 @@ export const useSetlistStore = create<SetlistStoreState>((set, get) => ({
     set((state) => ({
       currentSetlist: updateSetlist(state.currentSetlist, (current) => ({
         ...current,
-        blocks: [
-          ...current.blocks,
-          {
+        blocks: (() => {
+          const nextBlock: Block = {
             id: nanoid(),
             label: getNextBlockLabel(current.blocks),
             songs: [],
-          },
-        ],
+          };
+
+          nextBlock.layout = suggestPlacementForNewBlock(current.blocks, nextBlock, current.settings);
+          return [...current.blocks, nextBlock];
+        })(),
       })),
       dirtyRevision: state.dirtyRevision + 1,
       saveState: 'idle',
@@ -460,6 +486,17 @@ export const useSetlistStore = create<SetlistStoreState>((set, get) => ({
       currentSetlist: updateSetlist(state.currentSetlist, (current) => ({
         ...current,
         blocks: current.blocks.map((block) => (block.id === blockId ? { ...block, label } : block)),
+      })),
+      dirtyRevision: state.dirtyRevision + 1,
+      saveState: 'idle',
+    }));
+  },
+
+  setBlockPlacement(blockId, layout) {
+    set((state) => ({
+      currentSetlist: updateSetlist(state.currentSetlist, (current) => ({
+        ...current,
+        blocks: current.blocks.map((block) => (block.id === blockId ? { ...block, layout } : block)),
       })),
       dirtyRevision: state.dirtyRevision + 1,
       saveState: 'idle',

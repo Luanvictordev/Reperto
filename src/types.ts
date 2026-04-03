@@ -4,10 +4,16 @@ export interface Song {
   chord?: string;
 }
 
+export interface BlockLayout {
+  page: number;
+  column: number;
+}
+
 export interface Block {
   id: string;
   label: string;
   songs: Song[];
+  layout?: BlockLayout;
 }
 
 export type PrintFont = 'Georgia' | 'Times New Roman' | 'Arial' | 'Courier New' | 'Trebuchet MS';
