@@ -17,7 +17,7 @@ fn database_path(app: &tauri::App) -> Result<PathBuf, String> {
         .map_err(|error| error.to_string())?;
 
     fs::create_dir_all(&app_data_dir).map_err(|error| error.to_string())?;
-    Ok(app_data_dir.join("setlistmaker.db"))
+    Ok(app_data_dir.join("reperto.db"))
 }
 
 pub fn run() {

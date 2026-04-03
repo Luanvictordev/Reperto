@@ -37,7 +37,7 @@ fn sanitize_filename(value: &str) -> String {
         .to_owned();
 
     if sanitized.is_empty() {
-        "repertorio".to_string()
+        "reperto".to_string()
     } else {
         sanitized
     }
@@ -331,7 +331,7 @@ pub async fn prepare_print_pdf(setlist: SetlistPayload) -> Result<String, String
         .map_err(|error| format!("Erro ao preparar impress\u{00E3}o: {error}"))?
         .as_millis();
 
-    let output_path: PathBuf = std::env::temp_dir().join(format!("repertorio-print-{timestamp}.pdf"));
+    let output_path: PathBuf = std::env::temp_dir().join(format!("reperto-print-{timestamp}.pdf"));
     render_pdf_to_path(&setlist, &output_path)?;
     Ok(output_path.to_string_lossy().to_string())
 }

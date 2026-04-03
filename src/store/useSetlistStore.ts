@@ -26,7 +26,7 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-const RECENT_CHORD_COLORS_STORAGE_KEY = 'repertorio.recentChordColors';
+const RECENT_CHORD_COLORS_STORAGE_KEY = 'reperto.recentChordColors';
 
 function loadRecentChordColors() {
   if (typeof window === 'undefined') {

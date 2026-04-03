@@ -1,6 +1,6 @@
-# Repertório
+# Reperto
 
-Aplicativo desktop para montar, organizar e imprimir repertórios musicais com foco em uso simples no dia a dia.
+Desktop app para montar, organizar e imprimir repertórios musicais com foco em uso simples no dia a dia.
 
 ## O que faz
 

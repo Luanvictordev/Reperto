@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Repertório",
+  "productName": "Reperto",
   "version": "0.1.0",
-  "identifier": "com.setlistmaker.desktop",
+  "identifier": "com.reperto.desktop",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Repertório",
+        "title": "Reperto",
         "width": 1200,
         "height": 800,
         "minWidth": 900,
@@ -32,7 +32,7 @@
   },
   "plugins": {
     "sql": {
-      "preload": ["sqlite:setlistmaker.db"]
+      "preload": ["sqlite:reperto.db"]
     }
   }
 }

@@ -1,10 +1,10 @@
 [package]
-name = "setlistmaker"
+name = "reperto"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "setlistmaker_lib"
+name = "reperto_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

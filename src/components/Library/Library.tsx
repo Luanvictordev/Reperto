@@ -44,7 +44,7 @@ export default function Library() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <h1 className={styles.title}>Repertório</h1>
+          <h1 className={styles.title}>Reperto</h1>
         </div>
 
         <button type="button" className={styles.createButton} onClick={handleCreate}>
